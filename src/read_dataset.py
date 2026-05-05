@@ -46,6 +46,3 @@ def load(name: str) -> Dataset:
 
 def load_all() -> dict[str, Dataset]:
     return {name: load(name) for name in AVAILABLE}
-
-if __name__ == "__main__":
-    load_all()
