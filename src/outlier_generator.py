@@ -10,7 +10,7 @@ class OutlierGenerator:
         self._outlier_margin = 0.1
         self._random_state = 42
 
-    def _generate_outliers(self, X):
+    def generate_outliers(self, X):
         outliers_fn_map = {
             "uniform": self._generate_uniform_outliers
         }
@@ -32,8 +32,8 @@ class OutlierGenerator:
 
         return outliers
 
-    def fit(self, X, y = None):
-        outliers = self._generate_outliers(X)
+    def fit(self, X, y = None, outliers = None):
+        outliers = outliers or self.generate_outliers(X)
         y = np.hstack([np.ones(len(X)), np.zeros(len(outliers))])
         print(y.shape)
         X = np.vstack([X, outliers])
