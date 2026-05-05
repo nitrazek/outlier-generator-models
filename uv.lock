@@ -470,7 +470,7 @@ wheels = [
 [[package]]
 name = "outlier-generator-models"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "catboost" },
     { name = "lightgbm" },
