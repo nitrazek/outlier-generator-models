@@ -35,9 +35,7 @@ class OutlierGenerator:
     def fit(self, X, y = None, outliers = None):
         outliers = outliers or self.generate_outliers(X)
         y = np.hstack([np.ones(len(X)), np.zeros(len(outliers))])
-        print(y.shape)
         X = np.vstack([X, outliers])
-        print(X.shape)
         X, y = utils.shuffle(X, y, random_state=self._random_state)
         self._estimator.fit(X, y)
         return self
