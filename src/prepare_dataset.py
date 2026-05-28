@@ -53,10 +53,20 @@ def prepare_har() -> None:
     y_test = pd.read_csv(src / "test" / "y_test.txt", header=None).to_numpy(dtype=np.int64).ravel()
 
     X = np.vstack([X_train, X_test])
-    y = np.concatenate([y_train, y_test])
-    # HAR features are already normalized to [-1, 1]; keep multi-class labels (1..6)
-    # and let the downstream code pick a "normal" class for one-class classification.
-    _save("HAR", X, y, "activity class id (1..6) from activity_labels.txt")
+    activity = np.concatenate([y_train, y_test])
+
+    # Pick one activity as "normal" (label 0); all other activities are outliers (label 1).
+    NORMAL_CLASS = 6
+    label = (activity != NORMAL_CLASS).astype(np.int64)
+
+    _save(
+        "HAR",
+        X,
+        label,
+        f"0 = normal (activity {NORMAL_CLASS} = LAYING), 1 = outlier (other activities)",
+        extra_columns={"activity": activity},
+        extra_meta={"activity": "original activity class id (1..6) from activity_labels.txt"},
+    )
 
 
 def prepare_odds() -> None:
