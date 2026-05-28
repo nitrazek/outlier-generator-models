@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn import utils
+from sklearn import neighbors, utils
 
 
 class OutlierGenerator:
@@ -15,7 +15,8 @@ class OutlierGenerator:
         outliers_fn_map = {
             "uniform": self._generate_uniform_outliers,
             "normal": self._generate_normal_outliers,
-            "extreme": self._generate_extreme_outliers
+            "extreme": self._generate_extreme_outliers,
+            "kde": self._generate_kde_outliers,
         }
 
         if self._outliers_fn not in outliers_fn_map:
@@ -72,6 +73,34 @@ class OutlierGenerator:
             upper_points = self._rng.uniform(maxs[i], upper_bound_extreme, size=n_outliers)
             
             outliers[:, i] = np.where(sides == -1, lower_points, upper_points)
+
+        return outliers
+
+    def _generate_kde_outliers(self, X):
+        X_array = np.asarray(X)
+        n_samples, n_features = X_array.shape
+        n_outliers = int(n_samples * self._outlier_ratio)
+
+        try:
+            kde = neighbors.KernelDensity(kernel='gaussian', bandwidth='scott').fit(X_array)
+        except ValueError:
+            kde = neighbors.KernelDensity(kernel='gaussian', bandwidth=1.0).fit(X_array)
+
+        pool_multiplier = 10
+        pool_size = n_outliers * pool_multiplier
+        
+        mins = np.min(X_array, axis=0)
+        maxs = np.max(X_array, axis=0)
+        ranges = maxs - mins
+        
+        lower_bounds = mins - (ranges * self._outlier_margin)
+        upper_bounds = maxs + (ranges * self._outlier_margin)
+        
+        candidates = self._rng.uniform(low=lower_bounds, high=upper_bounds, size=(pool_size, n_features))
+        log_density = kde.score_samples(candidates)
+
+        lowest_density_indices = np.argsort(log_density)[:n_outliers]
+        outliers = candidates[lowest_density_indices]
 
         return outliers
 
